@@ -12,9 +12,8 @@ const PORT = process.env.PORT || 3399
 
 app.use(express.json({ limit: '50mb' }))
 
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'frontend', 'dist')))
-}
+// Always serve static files in both dev and production
+app.use(express.static(path.join(__dirname, 'frontend', 'dist')))
 
 app.post('/api/generate', async (req, res) => {
   const { model, prompt, image } = req.body
@@ -93,11 +92,10 @@ app.post('/api/generate', async (req, res) => {
   }
 })
 
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'))
-  })
-}
+// Always serve index.html for any unknown routes (SPA fallback)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'))
+})
 
 app.listen(PORT, () => {
   console.log(`NanoBanana2 server running on http://localhost:${PORT}`)
