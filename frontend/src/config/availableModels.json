@@ -1,0 +1,44 @@
+{
+  "generatedAt": "2026-03-03 02:33:42",
+  "rule": "mode+model unavailable iff 3 attempts are all HTTP 500",
+  "available": {
+    "t2i": [
+      "gemini-3.1-flash-image-four-three",
+      "gemini-3.1-flash-image-four-three-2k",
+      "gemini-3.1-flash-image-four-three-4k",
+      "gemini-3.1-flash-image-landscape",
+      "gemini-3.1-flash-image-landscape-2k",
+      "gemini-3.1-flash-image-landscape-4k",
+      "gemini-3.1-flash-image-portrait",
+      "gemini-3.1-flash-image-portrait-2k",
+      "gemini-3.1-flash-image-portrait-4k",
+      "gemini-3.1-flash-image-square",
+      "gemini-3.1-flash-image-square-2k",
+      "gemini-3.1-flash-image-square-4k",
+      "gemini-3.1-flash-image-three-four",
+      "gemini-3.1-flash-image-three-four-2k",
+      "gemini-3.1-flash-image-three-four-4k"
+    ],
+    "i2i": [
+      "gemini-3.1-flash-image-four-three",
+      "gemini-3.1-flash-image-four-three-2k",
+      "gemini-3.1-flash-image-four-three-4k",
+      "gemini-3.1-flash-image-landscape",
+      "gemini-3.1-flash-image-landscape-2k",
+      "gemini-3.1-flash-image-landscape-4k",
+      "gemini-3.1-flash-image-portrait",
+      "gemini-3.1-flash-image-portrait-2k",
+      "gemini-3.1-flash-image-portrait-4k",
+      "gemini-3.1-flash-image-square",
+      "gemini-3.1-flash-image-square-2k",
+      "gemini-3.1-flash-image-square-4k",
+      "gemini-3.1-flash-image-three-four",
+      "gemini-3.1-flash-image-three-four-2k",
+      "gemini-3.1-flash-image-three-four-4k"
+    ]
+  },
+  "unavailable": {
+    "t2i": [],
+    "i2i": []
+  }
+}

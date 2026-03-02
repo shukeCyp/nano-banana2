@@ -1,0 +1,22 @@
+{
+  "name": "nano-banana2",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "荷塘AI公益站-NanoBanana2 - AI Image Generation",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:frontend\"",
+    "dev:server": "PORT=3399 node server.js",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "NODE_ENV=production node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
