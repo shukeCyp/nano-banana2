@@ -16,6 +16,11 @@ export async function generateImage({ model, prompt, image, onStatus, onImage, o
 
     if (!res.ok) {
       const errText = await res.text().catch(() => '')
+      if (res.status === 403 && errText.includes('BLACKLISTED')) {
+        window.dispatchEvent(new Event('nb2-blacklisted'))
+        onError('请求受限，请稍后再试')
+        return
+      }
       let errMessage = `请求失败 (${res.status})`
       if (errText.includes('500')) errMessage = '服务器内部错误 (500)'
       else if (errText.toLowerCase().includes('timeout')) errMessage = '请求超时，请稍后重试'

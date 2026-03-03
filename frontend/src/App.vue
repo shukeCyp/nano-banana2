@@ -5,6 +5,7 @@ import ImageGenerator from './components/ImageGenerator.vue'
 import { fetchStats } from './utils/api.js'
 
 const showAnnouncement = ref(true)
+const showBlacklistOverlay = ref(false)
 const stats = ref({ today: 0, total: 0 })
 let statsTimer = null
 
@@ -12,13 +13,19 @@ async function loadStats() {
   stats.value = await fetchStats()
 }
 
+function onBlacklisted() {
+  showBlacklistOverlay.value = true
+}
+
 onMounted(() => {
   loadStats()
   statsTimer = setInterval(loadStats, 20000)
+  window.addEventListener('nb2-blacklisted', onBlacklisted)
 })
 
 onUnmounted(() => {
   if (statsTimer) clearInterval(statsTimer)
+  window.removeEventListener('nb2-blacklisted', onBlacklisted)
 })
 </script>
 
@@ -28,6 +35,17 @@ onUnmounted(() => {
     <div class="anime-orb anime-orb-b" />
     <div class="anime-grid" />
     <AnnouncementDialog v-if="showAnnouncement" @close="showAnnouncement = false" />
+
+    <!-- Blacklist full-screen overlay - cannot be dismissed -->
+    <Teleport to="body">
+      <div v-if="showBlacklistOverlay" class="blacklist-overlay">
+        <div class="blacklist-finger">🖕</div>
+        <div class="blacklist-text">
+          <span>别</span><span>浪</span><span>费</span><span>生</span><span>图</span><span>机</span><span>会</span>
+        </div>
+        <div class="blacklist-sub">等 会 再 用 吧</div>
+      </div>
+    </Teleport>
 
     <header class="sticky top-0 z-30 border-b border-white/40 backdrop-blur-md bg-white/45">
       <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -89,6 +107,75 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.blacklist-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  cursor: not-allowed;
+  overflow: hidden;
+}
+.blacklist-finger {
+  font-size: min(40vw, 220px);
+  line-height: 1;
+  animation: finger-float 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 60px rgba(255, 50, 50, 0.4));
+}
+@keyframes finger-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-18px) rotate(-6deg); }
+  70% { transform: translateY(-8px) rotate(6deg); }
+}
+.blacklist-text {
+  margin-top: 32px;
+  display: flex;
+  gap: 4px;
+}
+.blacklist-text span {
+  font-size: min(8vw, 48px);
+  font-weight: 900;
+  background: linear-gradient(135deg, #ff6b6b, #ffa500, #ff6b6b);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: text-shimmer 3s ease-in-out infinite, char-pop 0.6s ease-out both;
+  font-style: italic;
+  letter-spacing: 0.05em;
+}
+.blacklist-text span:nth-child(1) { animation-delay: 0s, 0s; }
+.blacklist-text span:nth-child(2) { animation-delay: 0.1s, 0.08s; }
+.blacklist-text span:nth-child(3) { animation-delay: 0.2s, 0.16s; }
+.blacklist-text span:nth-child(4) { animation-delay: 0.3s, 0.24s; }
+.blacklist-text span:nth-child(5) { animation-delay: 0.4s, 0.32s; }
+.blacklist-text span:nth-child(6) { animation-delay: 0.5s, 0.40s; }
+.blacklist-text span:nth-child(7) { animation-delay: 0.6s, 0.48s; }
+@keyframes char-pop {
+  0% { opacity: 0; transform: translateY(30px) scale(0.5); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes text-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.blacklist-sub {
+  margin-top: 20px;
+  font-size: min(4vw, 22px);
+  color: #555;
+  letter-spacing: 0.6em;
+  font-weight: 300;
+  animation: sub-fade 1.5s ease-out 0.8s both;
+}
+@keyframes sub-fade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
 .anime-bg {
   background:
     radial-gradient(1200px 560px at 5% -10%, rgba(244, 114, 182, 0.25), transparent 60%),
