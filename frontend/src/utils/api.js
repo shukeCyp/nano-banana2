@@ -1,13 +1,11 @@
+import { getUserId } from './userId.js'
+
 /**
  * Calls /api/generate with SSE streaming and extracts image URLs from the response.
- *
- * The upstream Flow2API returns OpenAI-compatible SSE chunks. Image data appears as
- * markdown image syntax ![image](data:image/...) or as a base64 data URL in the
- * streamed content delta.
  */
 export async function generateImage({ model, prompt, image, onStatus, onImage, onError }) {
   try {
-    const body = { model, prompt }
+    const body = { model, prompt, userId: getUserId() }
     if (image) body.image = image
 
     const res = await fetch('/api/generate', {
@@ -118,4 +116,14 @@ function extractImageUrl(content) {
   if (httpMatch) return httpMatch[1]
 
   return null
+}
+
+export async function fetchStats() {
+  try {
+    const res = await fetch('/api/stats')
+    if (!res.ok) return { today: 0, total: 0 }
+    return await res.json()
+  } catch {
+    return { today: 0, total: 0 }
+  }
 }

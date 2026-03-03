@@ -1,9 +1,25 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import AnnouncementDialog from './components/AnnouncementDialog.vue'
 import ImageGenerator from './components/ImageGenerator.vue'
+import { fetchStats } from './utils/api.js'
 
 const showAnnouncement = ref(true)
+const stats = ref({ today: 0, total: 0 })
+let statsTimer = null
+
+async function loadStats() {
+  stats.value = await fetchStats()
+}
+
+onMounted(() => {
+  loadStats()
+  statsTimer = setInterval(loadStats, 20000)
+})
+
+onUnmounted(() => {
+  if (statsTimer) clearInterval(statsTimer)
+})
 </script>
 
 <template>
@@ -38,7 +54,31 @@ const showAnnouncement = ref(true)
       </div>
     </header>
 
-    <main class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-6">
+    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-5 pb-1">
+      <div class="flex items-center justify-center gap-5 sm:gap-8 py-3 px-5 rounded-2xl bg-white/70 backdrop-blur-md border border-white/80 shadow-[0_4px_20px_rgba(51,65,85,0.06)]">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-400 flex items-center justify-center shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+          </div>
+          <div class="flex flex-col leading-tight">
+            <span class="text-[11px] text-slate-500 font-medium">全平台今日已生成</span>
+            <span class="text-xl font-extrabold text-fuchsia-600 tracking-wide">{{ stats.today }}</span>
+          </div>
+        </div>
+        <div class="w-px h-10 bg-slate-200/80" />
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-400 flex items-center justify-center shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /></svg>
+          </div>
+          <div class="flex flex-col leading-tight">
+            <span class="text-[11px] text-slate-500 font-medium">累计总生成</span>
+            <span class="text-xl font-extrabold text-sky-600 tracking-wide">{{ stats.total }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <main class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-5">
       <ImageGenerator />
     </main>
 
