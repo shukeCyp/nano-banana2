@@ -21,6 +21,18 @@ export async function generateImage({ model, prompt, image, onStatus, onImage, o
         onError('请求受限，请稍后再试')
         return
       }
+      if (res.status === 429 && errText.includes('RATE_LIMITED')) {
+        try {
+          const parsed = JSON.parse(errText)
+          const detail = parsed.error.replace('RATE_LIMITED:', '')
+          window.dispatchEvent(new CustomEvent('nb2-rate-limited', { detail }))
+          onError(detail)
+        } catch {
+          window.dispatchEvent(new CustomEvent('nb2-rate-limited', { detail: '请求过于频繁' }))
+          onError('请求过于频繁，请稍后再试')
+        }
+        return
+      }
       let errMessage = `请求失败 (${res.status})`
       if (errText.includes('500')) errMessage = '服务器内部错误 (500)'
       else if (errText.toLowerCase().includes('timeout')) errMessage = '请求超时，请稍后重试'

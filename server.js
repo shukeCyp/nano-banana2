@@ -90,6 +90,44 @@ function nextBanLevel(ip) {
   return existing.level + 1
 }
 
+// --------------- Rate limiting (in-memory, per IP) ---------------
+
+const RATE_HOUR_MAX = 20
+const RATE_DAY_MAX = 50
+const rateBuckets = new Map()
+
+function getRateBucket(ip) {
+  if (!rateBuckets.has(ip)) rateBuckets.set(ip, [])
+  return rateBuckets.get(ip)
+}
+
+function checkRateLimit(ip) {
+  const now = Date.now()
+  const bucket = getRateBucket(ip)
+  const oneHourAgo = now - 3600_000
+  const startOfDay = new Date().setHours(0, 0, 0, 0)
+
+  const hourCount = bucket.filter(t => t > oneHourAgo).length
+  const dayCount = bucket.filter(t => t > startOfDay).length
+
+  if (hourCount >= RATE_HOUR_MAX) {
+    return { limited: true, reason: 'hour', used: hourCount, max: RATE_HOUR_MAX }
+  }
+  if (dayCount >= RATE_DAY_MAX) {
+    return { limited: true, reason: 'day', used: dayCount, max: RATE_DAY_MAX }
+  }
+  return { limited: false }
+}
+
+function recordRateHit(ip) {
+  const bucket = getRateBucket(ip)
+  bucket.push(Date.now())
+  // Prune entries older than 24h to prevent memory leak
+  const cutoff = Date.now() - 86400_000
+  const pruned = bucket.filter(t => t > cutoff)
+  rateBuckets.set(ip, pruned)
+}
+
 // --------------- Stats API ---------------
 
 app.get('/api/stats', (req, res) => {
@@ -116,6 +154,16 @@ app.post('/api/generate', async (req, res) => {
   if (isBlacklisted(ip)) {
     return res.status(403).json({ error: 'BLACKLISTED' })
   }
+
+  const rateCheck = checkRateLimit(ip)
+  if (rateCheck.limited) {
+    const msg = rateCheck.reason === 'hour'
+      ? `RATE_LIMITED:每小时最多 ${RATE_HOUR_MAX} 次，您已使用 ${rateCheck.used} 次`
+      : `RATE_LIMITED:每天最多 ${RATE_DAY_MAX} 次，您已使用 ${rateCheck.used} 次`
+    return res.status(429).json({ error: msg })
+  }
+
+  recordRateHit(ip)
   const now = new Date()
   const logEntry = {
     userId: userId || 'anonymous',

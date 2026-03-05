@@ -6,6 +6,8 @@ import { fetchStats } from './utils/api.js'
 
 const showAnnouncement = ref(true)
 const showBlacklistOverlay = ref(false)
+const showRateLimitDialog = ref(false)
+const rateLimitMessage = ref('')
 const stats = ref({ today: 0, total: 0 })
 let statsTimer = null
 
@@ -17,15 +19,22 @@ function onBlacklisted() {
   showBlacklistOverlay.value = true
 }
 
+function onRateLimited(e) {
+  rateLimitMessage.value = e.detail || '请求过于频繁'
+  showRateLimitDialog.value = true
+}
+
 onMounted(() => {
   loadStats()
   statsTimer = setInterval(loadStats, 20000)
   window.addEventListener('nb2-blacklisted', onBlacklisted)
+  window.addEventListener('nb2-rate-limited', onRateLimited)
 })
 
 onUnmounted(() => {
   if (statsTimer) clearInterval(statsTimer)
   window.removeEventListener('nb2-blacklisted', onBlacklisted)
+  window.removeEventListener('nb2-rate-limited', onRateLimited)
 })
 </script>
 
@@ -44,6 +53,56 @@ onUnmounted(() => {
           <span>别</span><span>浪</span><span>费</span><span>生</span><span>图</span><span>机</span><span>会</span>
         </div>
         <div class="blacklist-sub">等 会 再 用 吧</div>
+      </div>
+    </Teleport>
+
+    <!-- Rate limit dialog - can be dismissed -->
+    <Teleport to="body">
+      <div v-if="showRateLimitDialog" class="fixed inset-0 z-[9000] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @click="showRateLimitDialog = false" />
+        <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden rate-limit-enter">
+          <div class="bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 px-6 py-5">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl">⚠️</span>
+              <div>
+                <h2 class="text-lg font-extrabold text-white">速率限制</h2>
+                <p class="text-orange-100 text-xs mt-0.5">请求太频繁啦</p>
+              </div>
+            </div>
+          </div>
+          <div class="px-6 py-5 space-y-4">
+            <div class="text-sm text-slate-700 leading-relaxed">
+              <p class="font-semibold text-slate-900 mb-2">{{ rateLimitMessage }}</p>
+              <p class="text-slate-600">为了保证所有用户的使用体验，我们对每个 IP 的请求频率做了限制：</p>
+              <ul class="mt-2 space-y-1 text-slate-600">
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />
+                  每小时最多 <strong class="text-slate-800">20</strong> 次
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                  每天最多 <strong class="text-slate-800">50</strong> 次
+                </li>
+              </ul>
+            </div>
+            <div class="p-3 bg-sky-50 rounded-xl border border-sky-100">
+              <p class="text-sm font-semibold text-slate-800 mb-1">如需更多次数，欢迎加入交流群</p>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="text-xl">💬</span>
+                <span class="text-sky-600 font-mono text-xl font-extrabold tracking-wide">1075766113</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">QQ 群 · 联系管理员获取更高额度</p>
+            </div>
+          </div>
+          <div class="px-6 pb-5">
+            <button
+              @click="showRateLimitDialog = false"
+              class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-orange-200 active:scale-[0.98]"
+            >
+              我知道了
+            </button>
+          </div>
+        </div>
       </div>
     </Teleport>
 
@@ -175,6 +234,13 @@ onUnmounted(() => {
 @keyframes sub-fade {
   0% { opacity: 0; }
   100% { opacity: 1; }
+}
+@keyframes rate-limit-in {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.rate-limit-enter {
+  animation: rate-limit-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .anime-bg {
   background:
